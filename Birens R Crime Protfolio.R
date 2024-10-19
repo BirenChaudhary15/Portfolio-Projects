@@ -1,0 +1,150 @@
+install.packages("tidyverse")
+library(tidyverse)
+
+#load the crime data from csv
+crime_data <- read.csv("C:/Users/drbir/OneDrive/Desktop/crimedata.csv" , fileEncoding = "ISO-8859-1")
+
+#view the structure of dataset 
+str(crime_data)
+
+# View the first few rows of the data
+head(crime_data)
+
+# Summary statistics of the dataset
+summary(crime_data)
+
+# Check for missing values in the dataset
+colSums(is.na(crime_data))
+
+# Remove rows with any missing values
+crime_data_clean <- na.omit(crime_data)
+
+library(ggplot2)
+
+# Summarize population by state
+population_by_state <- aggregate(population ~ state, data = crime_data, sum)
+
+# Bar plot
+ggplot(population_by_state, aes(x = state, y = population)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  theme_minimal() +
+  labs(title = "Population Distribution by State", x = "State", y = "Total Population")
+
+# Summarize murder count by state
+murders_by_state <- aggregate(murders ~ state, data = crime_data, sum)
+
+# View the summarized data
+murders_by_state
+
+# Bar plot for murder count by state
+ggplot(murders_by_state, aes(x = state, y = murders)) +
+  geom_bar(stat = "identity", fill = "red") +
+  theme_minimal() +
+  labs(title = "Murder Count by State", x = "State", y = "Total Murders")
+
+#Summarize murders by population percentage ()
+murders_by_percentage <- aggregate(murdPerPop ~ state, data = crime_data, mean)
+
+# to analyze the murder trend of different state 
+murders_by_percentage
+
+# Summarize total murders and total population by state
+summary_by_state <- aggregate(cbind(murders, population) ~ state, data = crime_data, sum)
+
+# Calculate murder percentage per population
+summary_by_state$murdPerPop <- (summary_by_state$murder / summary_by_state$population) * 100
+
+# View the summarized data
+print(summary_by_state)
+
+# Bar plot for murder percentage by state
+ggplot(summary_by_state, aes(x = state, y = murdPerPop)) +
+  geom_bar(stat = "identity", fill = "purple") +
+  theme_minimal() +
+  labs(title = "Murder Percentage by State", x = "State", y = "Murder Percentage (%)")
+
+
+# Create a summary of crime counts
+crime_distribution <- data.frame(
+  Crime_Type = c("Murders", "Robberies","Assaults","Burglaries"),  # List of crime types
+  Count = c(sum(crime_data$murders, na.rm = TRUE), 
+            sum(crime_data$robberies, na.rm = TRUE),
+            sum(crime_data$assaults, na.rm = TRUE),
+            sum(crime_data$burglaries, na.rm = TRUE)))
+
+#ran into some errors . took a look at the data again 
+str(crime_data)
+#some of the column had a ? in them  so replaced it with NA
+crime_data[crime_data == "?"] <- NA
+
+# Convert relevant columns to numeric
+crime_data$murders <- as.numeric(crime_data$murders)
+crime_data$rapes <- as.numeric(crime_data$rapes)
+crime_data$robberies <- as.numeric(crime_data$robberies)
+crime_data$assaults <- as.numeric(crime_data$assaults)
+crime_data$burglaries <- as.numeric(crime_data$burglaries)
+# Check for NA values in the relevant columns
+na_counts <- colSums(is.na(crime_data[ c("murders", "rapes", "robberies", "assaults", "burglaries")]))
+na_counts
+
+
+# Create a summary of crime counts
+crime_distribution <- data.frame(
+  Crime_Type = c("Murders", "Rapes", "Robberies", "Assaults", "Burglaries"),  # List of crime types
+  Count = c(
+    sum(crime_data$murders, na.rm = TRUE), 
+    sum(crime_data$rapes, na.rm = TRUE), 
+    sum(crime_data$robberies, na.rm = TRUE), 
+    sum(crime_data$assaults, na.rm = TRUE), 
+    sum(crime_data$burglaries, na.rm = TRUE)))
+
+# Display the crime distribution data frame
+print(crime_distribution)
+
+# Pie chart for crime distribution
+pie(crime_distribution$Count, 
+    labels = crime_distribution$Crime_Type, 
+    main = "Crime Distribution",
+    col = rainbow(length(crime_distribution$Crime_Type)))
+
+#Summarized the crime data by state, focusing on different crime types and demographic percentages
+crime_demographics <- crime_data %>%
+  group_by(state) %>%
+  summarise(
+    Total_Murders = sum(murders, na.rm = TRUE),
+    Total_Rapes = sum(rapes, na.rm = TRUE),
+    Total_Robberies = sum(robberies, na.rm = TRUE),
+    Total_Assaults = sum(assaults, na.rm = TRUE),
+    Total_Burglaries = sum(burglaries, na.rm = TRUE),
+    White_Percentage = mean(racePctWhite, na.rm = TRUE),
+    Black_Percentage = mean(racepctblack, na.rm = TRUE),
+    Hispanic_Percentage = mean(racePctHisp, na.rm = TRUE),
+    Asian_Percentage = mean(racePctAsian, na.rm = TRUE)
+  )
+
+crime_demographics
+
+
+
+# View the column names
+colnames(crime_demographics)
+
+#Reshaped the demograhapic data for easier plotting 
+crime_demographics_long <- crime_demographics %>%
+  pivot_longer(cols = c(White_Percentage, Black_Percentage, Hispanic_Percentage, Asian_Percentage),
+               names_to = "Demographic",
+               values_to = "Percentage")
+
+# Created a stacked bar chart for demographic composition by state
+ggplot(crime_demographics_long, aes(x = state, y = Percentage, fill = Demographic)) +
+  geom_bar(stat = "identity", position = "stack") +
+  theme_minimal() +
+  labs(title = "Demographic Composition by State",
+       x = "State",
+       y = "Percentage",
+       fill = "Demographic") +
+  scale_fill_manual(values = c("White_Percentage" = "blue", 
+                               "Black_Percentage" = "red", 
+                               "Hispanic_Percentage" = "green", 
+                               "Asian_Percentage" = "orange"))
+
