@@ -16,7 +16,7 @@ Add SaleDateConverted Date;
 Update NashvilleHousing
 SET SaleDateConverted= CONVERT(Date, SaleDate)
 
---------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------
 --Populate the Property Address
 Select *
 From ProtfolioProject..NashvilleHousing
