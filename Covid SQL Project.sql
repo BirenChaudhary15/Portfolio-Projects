@@ -7,7 +7,7 @@ order by 3,4
 --From ProtfolioProject.dbo.CovidVaccinations
 --order by 3,4
 
---Select the Data that i am going to use
+--Selecting the data
 Select location, date, total_cases, new_cases, total_deaths, population
 From ProtfolioProject.dbo.CovidDeaths
 order by 1,2
